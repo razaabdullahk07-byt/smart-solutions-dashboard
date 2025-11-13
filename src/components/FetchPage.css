@@ -1,0 +1,142 @@
+.fetch-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+}
+
+.fetch-box {
+  display: flex;
+  max-width: 900px;
+  width: 100%;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  animation: fadeIn 0.7s ease-in-out;
+  flex-direction: row;
+}
+
+.fetch-left {
+  flex: 1;
+  padding: 40px;
+}
+
+.fetch-left h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.fetch-desc {
+  color: #555;
+  font-size: 1rem;
+  margin-bottom: 30px;
+}
+
+button {
+  background-color: #2575fc;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #1a5fdc;
+}
+
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.fetch-right {
+  flex: 1;
+  background: #f3f8ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.fetch-illustration {
+  max-width: 100%;
+  animation: bounce 4s infinite;
+}
+
+/* === Animations === */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* === Responsive Styles === */
+@media (max-width: 768px) {
+  .fetch-box {
+    flex-direction: column;
+  }
+
+  .fetch-left, .fetch-right {
+    padding: 20px;
+  }
+
+  .fetch-left h2 {
+    font-size: 1.5rem;
+  }
+
+  .fetch-desc {
+    font-size: 0.95rem;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .fetch-left {
+    padding: 15px;
+  }
+
+  .fetch-right {
+    padding: 15px;
+  }
+
+  .fetch-left h2 {
+    font-size: 1.3rem;
+  }
+
+  .fetch-desc {
+    font-size: 0.9rem;
+  }
+
+  button {
+    font-size: 14px;
+    padding: 10px;
+  }
+}

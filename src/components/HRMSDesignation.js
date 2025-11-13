@@ -1,0 +1,448 @@
+// import React, { useState, useEffect } from "react";
+// import "./HRMSDesignation.css";
+// import { FaEdit, FaPlus, FaTimes, FaSave, FaSearch } from "react-icons/fa";
+
+// const HRMSDesignation = () => {
+//   const [categories, setCategories] = useState([]);
+//   const [filteredCategories, setFilteredCategories] = useState([]);
+//   const [searchTerm, setSearchTerm] = useState("");
+//   const [activeFilter, setActiveFilter] = useState("all");
+//   const [error, setError] = useState(null);
+//   const [loading, setLoading] = useState(true);
+
+//   // Form state
+//   const [isEditing, setIsEditing] = useState(false);
+//   const [editMode, setEditMode] = useState("new"); // "new" | "edit"
+//   const [formData, setFormData] = useState({
+//     Code: "",
+//     Name: "",
+//     IsActive: false,
+//     IsOverTimeAllow: false,
+//   });
+
+//   const tableName = "HRMSDesignation";
+//   const API_BASE = "http://192.168.100.113:8081/api";
+
+//   // ✅ Helper to fetch JSON safely
+//   const fetchJson = async (url, options = {}) => {
+//     const res = await fetch(url, {
+//       headers: { "Content-Type": "application/json", ...options.headers },
+//       ...options,
+//     });
+//     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+//     return await res.json();
+//   };
+
+//   // ✅ Fetch all designations
+//   const fetchDesignations = async () => {
+//     try {
+//       setLoading(true);
+//       const data = await fetchJson(`${API_BASE}/get-table-data`, {
+//         method: "POST",
+//         body: JSON.stringify({ tableName, offcode: "0101" }),
+//       });
+
+//       if (data.success && (data.data || data.rows)) {
+//         const rows = data.data || data.rows;
+//         setCategories(rows);
+//         setFilteredCategories(rows);
+//       } else {
+//         setError("Failed to load designation data");
+//       }
+//     } catch (err) {
+//       setError(`Error: ${err.message}`);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchDesignations();
+//   }, []);
+
+//   // ✅ Filtering
+//   useEffect(() => {
+//     let filtered = categories;
+
+//     if (searchTerm.trim() !== "") {
+//       filtered = filtered.filter((d) =>
+//         ["Code", "Name", "CODE", "NAME"].some(
+//           (key) =>
+//             d[key] &&
+//             d[key].toString().toLowerCase().includes(searchTerm.toLowerCase())
+//         )
+//       );
+//     }
+
+//     if (activeFilter !== "all") {
+//       const isActive = activeFilter === "active";
+//       filtered = filtered.filter((d) => {
+//         const activeValue =
+//           d.IsActive ?? d.isActive ?? d.ISACTIVE ?? d.Active ?? d.ACTIVE ?? false;
+//         const itemActive =
+//           typeof activeValue === "boolean"
+//             ? activeValue
+//             : activeValue === "true" ||
+//               activeValue === "1" ||
+//               activeValue === 1;
+//         return itemActive === isActive;
+//       });
+//     }
+
+//     setFilteredCategories(filtered);
+//   }, [searchTerm, activeFilter, categories]);
+
+//   // ✅ Input handler
+//   const handleInputChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: type === "checkbox" ? checked : value,
+//     }));
+//   };
+
+//   // ✅ Helper to get next available code
+//   const getNextCode = () => {
+//     if (!categories || categories.length === 0) return "001";
+
+//     // Extract numeric codes
+//     const codes = categories
+//       .map((c) => parseInt(c.Code || c.CODE || "0", 10))
+//       .filter((n) => !isNaN(n));
+
+//     if (codes.length === 0) return "001";
+
+//     const maxCode = Math.max(...codes);
+//     const nextCode = (maxCode + 1).toString().padStart(3, "0");
+//     return nextCode;
+//   };
+
+//   // ✅ Open form for new
+//   const handleNew = () => {
+//     setFormData({
+//       Code: getNextCode(), // Auto-generate next available code
+//       Name: "",
+//       IsActive: true, // default new as active
+//       IsOverTimeAllow: false,
+//     });
+//     setEditMode("new");
+//     setIsEditing(true);
+//   };
+
+//   // ✅ Open form for edit
+//   const handleEdit = (designation) => {
+//     setFormData({
+//       Code: designation.Code || designation.CODE || "",
+//       Name: designation.Name || designation.NAME || "",
+//       IsActive:
+//         designation.IsActive === true ||
+//         designation.IsActive === "true" ||
+//         designation.IsActive === 1 ||
+//         designation.IsActive === "1" ||
+//         designation.ACTIVE === true ||
+//         designation.ACTIVE === 1,
+//       IsOverTimeAllow:
+//         designation.IsOverTimeAllow === true ||
+//         designation.IsOverTimeAllow === "true" ||
+//         designation.IsOverTimeAllow === 1 ||
+//         designation.IsOverTimeAllow === "1" ||
+//         designation.ISOVERTIMEALLOW === true ||
+//         designation.ISOVERTIMEALLOW === 1 ||
+//         false,
+//     });
+//     setEditMode("edit");
+//     setIsEditing(true);
+//   };
+
+//   // ✅ Save or Update
+//   const handleSave = async () => {
+//     try {
+//       const payload =
+//         editMode === "edit"
+//           ? {
+//               tableName,
+//               data: {
+//                 Name: formData.Name,
+//                 IsActive: formData.IsActive,
+//                 IsOverTimeAllow: formData.IsOverTimeAllow,
+//               },
+//               where: { Code: formData.Code },
+//             }
+//           : {
+//               tableName,
+//               data: {
+//                 Code: formData.Code,
+//                 Name: formData.Name,
+//                 IsActive: formData.IsActive,
+//                 IsOverTimeAllow: formData.IsOverTimeAllow,
+//               },
+//             };
+
+//       const url =
+//         editMode === "edit"
+//           ? `${API_BASE}/update-table-data`
+//           : `${API_BASE}/insert-table-data`;
+
+//       const res = await fetchJson(url, {
+//         method: "POST",
+//         body: JSON.stringify(payload),
+//       });
+
+//       if (res.success) {
+//         await fetchDesignations();
+//         setIsEditing(false);
+//         setError(null);
+//       } else {
+//         setError("❌ Operation failed: " + (res.error || "Unknown error"));
+//       }
+//     } catch (err) {
+//       setError("❌ Error: " + err.message);
+//     }
+//   };
+
+//   // ✅ Cancel editing
+//   const handleCancel = () => {
+//     setIsEditing(false);
+//     setFormData({
+//       Code: "",
+//       Name: "",
+//       IsActive: false,
+//       IsOverTimeAllow: false,
+//     });
+//   };
+
+//   // ---------------------------------------------------
+//   // UI
+//   // ---------------------------------------------------
+
+//   if (loading) {
+//     return (
+//       <div className="category-container">
+//         <h2>Designation Management</h2>
+//         <div className="loading-spinner"></div>
+//         <p>Loading designations...</p>
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="category-container">
+//       <div className="header-section">
+//         <h2>Designation Management</h2>
+//         <div className="accent-line"></div>
+//       </div>
+
+//       {error && <div className="error-message">{error}</div>}
+
+//       {isEditing ? (
+//         <div className="category-form glassmorphism">
+//           <h3>{editMode === "edit" ? "Edit Designation" : "Add New Designation"}</h3>
+
+//           <div className="form-row">
+//             <div className="form-group">
+//               <label>Code *</label>
+//               <input
+//                 type="text"
+//                 name="Code"
+//                 value={formData.Code}
+//                 onChange={handleInputChange}
+//                 disabled={editMode === "edit"}
+//                 className="modern-input"
+//               />
+//             </div>
+
+//             <div className="form-group">
+//               <label>Name *</label>
+//               <input
+//                 type="text"
+//                 name="Name"
+//                 value={formData.Name}
+//                 onChange={handleInputChange}
+//                 className="modern-input"
+//               />
+//             </div>
+//           </div>
+
+//           <div className="form-row">
+//             <div className="form-group checkbox-container">
+//               <label className="checkbox-label">
+//                 <input
+//                   type="checkbox"
+//                   name="IsActive"
+//                   checked={formData.IsActive}
+//                   onChange={handleInputChange}
+//                   className="modern-checkbox"
+//                 />
+//                 <span className="checkmark"></span>
+//                 Active
+//               </label>
+//             </div>
+
+//             <div className="form-group checkbox-container">
+//               <label className="checkbox-label">
+//                 <input
+//                   type="checkbox"
+//                   name="IsOverTimeAllow"
+//                   checked={formData.IsOverTimeAllow}
+//                   onChange={handleInputChange}
+//                   className="modern-checkbox"
+//                 />
+//                 <span className="checkmark"></span>
+//                 Overtime Allowed
+//               </label>
+//             </div>
+//           </div>
+
+//           <div className="form-actions">
+//             <button className="btn save" onClick={handleSave}>
+//               <FaSave /> {editMode === "edit" ? "Update" : "Save"}
+//             </button>
+//             <button className="btn cancel" onClick={handleCancel}>
+//               <FaTimes /> Cancel
+//             </button>
+//           </div>
+//         </div>
+//       ) : (
+//         <>
+//           {/* Toolbar */}
+//           <div className="category-toolbar glassmorphism">
+//             <div className="search-box">
+//               <FaSearch className="search-icon" />
+//               <input
+//                 type="text"
+//                 placeholder="Search by Code or Name..."
+//                 value={searchTerm}
+//                 onChange={(e) => setSearchTerm(e.target.value)}
+//                 className="modern-input"
+//               />
+//             </div>
+
+//             <div className="filter-buttons">
+//               <span>Status:</span>
+//               <button
+//                 className={activeFilter === "all" ? "btn-filter active" : "btn-filter"}
+//                 onClick={() => setActiveFilter("all")}
+//               >
+//                 All
+//               </button>
+//               <button
+//                 className={activeFilter === "active" ? "btn-filter active" : "btn-filter"}
+//                 onClick={() => setActiveFilter("active")}
+//               >
+//                 Active
+//               </button>
+//               <button
+//                 className={activeFilter === "inactive" ? "btn-filter active" : "btn-filter"}
+//                 onClick={() => setActiveFilter("inactive")}
+//               >
+//                 Inactive
+//               </button>
+//             </div>
+
+//             <button className="btn new" onClick={handleNew}>
+//               <FaPlus /> New Designation
+//             </button>
+//           </div>
+
+//           {/* List */}
+//           <div className="category-list-container glassmorphism">
+//             <div className="category-list-header">
+//               <div className="header-cell">Code</div>
+//               <div className="header-cell">Name</div>
+//               <div className="header-cell center">Status</div>
+//               <div className="header-cell center">Overtime</div>
+//               <div className="header-cell center">Actions</div>
+//             </div>
+
+//             <div className="category-list">
+//               {filteredCategories.length > 0 ? (
+//                 filteredCategories.map((d, idx) => {
+//                   const activeValue =
+//                     d.IsActive ??
+//                     d.isActive ??
+//                     d.ISACTIVE ??
+//                     d.Active ??
+//                     d.ACTIVE ??
+//                     false;
+//                   const isActive =
+//                     typeof activeValue === "boolean"
+//                       ? activeValue
+//                       : activeValue === "true" ||
+//                         activeValue === "1" ||
+//                         activeValue === 1;
+
+//                   const overtimeValue =
+//                     d.IsOverTimeAllow ??
+//                     d.isOverTimeAllow ??
+//                     d.ISOVERTIMEALLOW ??
+//                     d.OvertimeAllow ??
+//                     d.OVERTIMEALLOW ??
+//                     false;
+//                   const isOvertimeAllowed =
+//                     typeof overtimeValue === "boolean"
+//                       ? overtimeValue
+//                       : overtimeValue === "true" ||
+//                         overtimeValue === "1" ||
+//                         overtimeValue === 1;
+
+//                   return (
+//                     <div key={idx} className="category-item">
+//                       <div className="list-cell">{d.Code || d.CODE}</div>
+//                       <div className="list-cell">{d.Name || d.NAME}</div>
+//                       <div className="list-cell center">
+//                         <span
+//                           className={`status-badge ${isActive ? "active" : "inactive"}`}
+//                         >
+//                           {isActive ? "Active" : "Inactive"}
+//                         </span>
+//                       </div>
+//                       <div className="list-cell center">
+//                         <span
+//                           className={`status-badge ${
+//                             isOvertimeAllowed ? "active" : "inactive"
+//                           }`}
+//                         >
+//                           {isOvertimeAllowed ? "Allowed" : "Not Allowed"}
+//                         </span>
+//                       </div>
+//                       <div className="list-cell center actions">
+//                         <button
+//                           className="btn-edit"
+//                           onClick={() => handleEdit(d)}
+//                           title="Edit"
+//                         >
+//                           <FaEdit />
+//                         </button>
+//                       </div>
+//                     </div>
+//                   );
+//                 })
+//               ) : (
+//                 <div className="no-data">
+//                   {searchTerm || activeFilter !== "all"
+//                     ? "No designations match your search criteria"
+//                     : "No designations found"}
+//                 </div>
+//               )}
+//             </div>
+//           </div>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default HRMSDesignation;
+
+
+import React from 'react';
+import HRMSGenericManager from './HRMSGenericManager';
+
+const HRMSDesignation = (props) => (
+  <HRMSGenericManager 
+    moduleType="designation"
+    {...props}
+  />
+);
+
+export default HRMSDesignation;
